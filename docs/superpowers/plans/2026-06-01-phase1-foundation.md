@@ -15,9 +15,11 @@
 These require credentials only the owner has. Do them in the session with the `!` prefix or in a browser, then continue.
 
 - **Supabase project:** create one at https://supabase.com (region close to friends). From Project Settings → API, copy the Project URL, `anon` key, and `service_role` key. From Project Settings → Database, copy the connection string (use the **Session pooler** URI, port 5432, with your DB password).
-- **Google OAuth:** in Google Cloud Console create an OAuth 2.0 Client (Web). Add the Supabase callback `https://<project-ref>.supabase.co/auth/v1/callback` as an authorized redirect URI. In Supabase → Authentication → Providers → Google, paste the client ID/secret and enable it. Also enable Email provider.
+- **Email auth:** in Supabase → Authentication → Providers, ensure the **Email** provider is enabled. For a friction-free friend group, turn **off** "Confirm email" (Authentication → Providers → Email → "Confirm email" toggle) so sign-up logs in immediately. (If left on, users must click a confirmation link before they can sign in.)
 
-These values populate `.env.local` in Task 3. Until they exist, Tasks 1–4 and the seed-parser tests (Task 7) can proceed; Tasks 5, 6b, 9 need them.
+> **Google OAuth is deferred.** v1 ships with email + password only. Google sign-in is added as a final step after all phases — the auth code is structured so a provider + OAuth callback route slots in later without rework.
+
+These values populate `.env.local` in Task 3. Until they exist, Tasks 1–4b and the seed-parser tests (Task 7) can proceed; Tasks 5, the live seed run, and the Task 9 manual auth test need them.
 
 ---
 
@@ -837,9 +839,11 @@ git commit -m "feat: retro pitch theme, app shell, nav, landing page"
 
 ---
 
-## Task 9: Auth flow + profile / display-name onboarding
+## Task 9: Auth flow (email/password) + profile / display-name onboarding
 
-**Files:** Create `src/lib/profile.ts`, `src/app/auth/login/page.tsx`, `src/app/auth/callback/route.ts`, `src/app/auth/actions.ts`, `src/app/onboarding/page.tsx`, `src/app/onboarding/actions.ts`. **Requires Supabase auth configured (prerequisite) + migration (Task 5).**
+> **Note:** Email + password only for now. **Google OAuth is deferred** to a later step — keep the structure so a provider button + OAuth callback route can be added without rework.
+
+**Files:** Create `src/lib/profile.ts`, `src/app/auth/login/page.tsx`, `src/app/onboarding/page.tsx`, `src/app/onboarding/actions.ts`. **Requires Supabase email auth enabled (prerequisite) + migration (Task 5).**
 
 - [ ] **Step 1: Create `src/lib/profile.ts` (ensure-profile helper)**
 
@@ -861,79 +865,68 @@ export async function setDisplayName(userId: string, displayName: string) {
 }
 ```
 
-- [ ] **Step 2: Create the login page `src/app/auth/login/page.tsx`**
+- [ ] **Step 2: Create the email/password login page `src/app/auth/login/page.tsx`**
 
 ```tsx
 'use client';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function Login() {
   const supabase = createClient();
+  const router = useRouter();
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
-  async function google() {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${location.origin}/auth/callback` },
-    });
-  }
-  async function magic(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${location.origin}/auth/callback` },
-    });
-    setSent(true);
+    setError(null);
+    const fn = mode === 'signup'
+      ? supabase.auth.signUp({ email, password })
+      : supabase.auth.signInWithPassword({ email, password });
+    const { error } = await fn;
+    if (error) { setError(error.message); return; }
+    // Onboarding gate (display-name check) runs server-side after redirect.
+    router.push('/onboarding');
+    router.refresh();
   }
 
   return (
     <div className="rp-card p-6 max-w-sm mx-auto">
-      <h1 className="text-xl font-bold mb-4">Sign in</h1>
-      <button onClick={google} className="w-full bg-pitch text-cream rounded-lg py-2 mb-4">
-        Continue with Google
+      <h1 className="text-xl font-bold mb-4">{mode === 'signup' ? 'Create account' : 'Sign in'}</h1>
+      <form onSubmit={submit} className="flex flex-col gap-2">
+        <input className="border-2 border-pitch rounded-lg p-2" type="email" required
+          placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input className="border-2 border-pitch rounded-lg p-2" type="password" required minLength={6}
+          placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        {error && <p className="text-alert text-sm">{error}</p>}
+        <button className="bg-gold text-pitch font-bold rounded-lg py-2">
+          {mode === 'signup' ? 'Sign up' : 'Sign in'}
+        </button>
+      </form>
+      <button
+        onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setError(null); }}
+        className="mt-3 text-sm underline w-full">
+        {mode === 'signup' ? 'Have an account? Sign in' : "New here? Create an account"}
       </button>
-      {sent ? (
-        <p>Check your email for the magic link.</p>
-      ) : (
-        <form onSubmit={magic} className="flex flex-col gap-2">
-          <input className="border-2 border-pitch rounded-lg p-2" type="email" required
-            placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <button className="bg-gold text-pitch font-bold rounded-lg py-2">Email me a link</button>
-        </form>
-      )}
+      {/* Google OAuth button slots in here in a later phase. */}
     </div>
   );
 }
 ```
 
-- [ ] **Step 3: Create the OAuth/OTP callback `src/app/auth/callback/route.ts`**
+- [ ] **Step 3: Create the onboarding page `src/app/onboarding/page.tsx`**
 
-```ts
-import { createClient } from '@/lib/supabase/server';
-import { getOrCreateProfile } from '@/lib/profile';
-import { NextResponse } from 'next/server';
-
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
-  if (code) {
-    const supabase = await createClient();
-    const { data } = await supabase.auth.exchangeCodeForSession(code);
-    if (data.user) {
-      const profile = await getOrCreateProfile(data.user.id);
-      if (!profile.displayName) return NextResponse.redirect(`${origin}/onboarding`);
-    }
-  }
-  return NextResponse.redirect(`${origin}/`);
-}
-```
-
-- [ ] **Step 4: Create the onboarding page `src/app/onboarding/page.tsx`**
+This page is the post-login gate: it ensures a profile row exists and, if the display
+name is already set, sends the user home. (Works for any auth method, including Google
+later.)
 
 ```tsx
 import { createClient } from '@/lib/supabase/server';
+import { getOrCreateProfile } from '@/lib/profile';
 import { redirect } from 'next/navigation';
 import { saveDisplayName } from './actions';
 
@@ -941,6 +934,8 @@ export default async function Onboarding() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
+  const profile = await getOrCreateProfile(user.id);
+  if (profile.displayName) redirect('/');  // already onboarded
   return (
     <form action={saveDisplayName} className="rp-card p-6 max-w-sm mx-auto flex flex-col gap-3">
       <h1 className="text-xl font-bold">Pick your name</h1>
@@ -952,7 +947,7 @@ export default async function Onboarding() {
 }
 ```
 
-- [ ] **Step 5: Create `src/app/onboarding/actions.ts`**
+- [ ] **Step 4: Create `src/app/onboarding/actions.ts`**
 
 ```ts
 'use server';
@@ -971,21 +966,21 @@ export async function saveDisplayName(formData: FormData) {
 }
 ```
 
-- [ ] **Step 6: Verify build**
+- [ ] **Step 5: Verify build**
 
 Run: `npm run build`
 Expected: compiles with no type errors.
 
-- [ ] **Step 7: Manual end-to-end check (requires dev server + configured Supabase)**
+- [ ] **Step 6: Manual end-to-end check (requires dev server + configured Supabase)**
 
-Run: `npm run dev`, open http://localhost:3000/auth/login, sign in with Google or the email magic link, confirm redirect to `/onboarding`, set a name, land on `/`. Verify in Supabase Table editor that a `profiles` row exists with the display name.
+Run: `npm run dev`, open http://localhost:3000/auth/login, create an account with email + password, confirm redirect to `/onboarding`, set a name, land on `/`. Verify in the Supabase Table editor that a `profiles` row exists with the display name.
 
-- [ ] **Step 8: Manually mark yourself admin (one-time)**
+- [ ] **Step 7: Manually mark yourself admin (one-time)**
 
 In the Supabase SQL editor: `update profiles set is_admin = true where id = '<your-auth-user-id>';`
 This unlocks the admin panel built in Phase 3.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add -A
