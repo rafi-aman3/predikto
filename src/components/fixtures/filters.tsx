@@ -15,7 +15,10 @@ export function Filters({
   const build = (patch: Record<string, string>) => {
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(query)) if (v) params.set(k, v);
-    for (const [k, v] of Object.entries(patch)) v ? params.set(k, v) : params.delete(k);
+    for (const [k, v] of Object.entries(patch)) {
+      if (v) params.set(k, v);
+      else params.delete(k);
+    }
     return `/fixtures?${params.toString()}`;
   };
   const chip = (label: string, href: string, on: boolean) => (
