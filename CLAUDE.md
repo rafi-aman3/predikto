@@ -12,10 +12,14 @@ lean and fast.
 ## Status
 
 - **Phase 1 (Foundation): COMPLETE.**
+- **Phase 2 (Fixtures + Match Predictions): COMPLETE.** `/fixtures` page with
+  Calendar/Timeline/Stage views + group/stage filters; prediction card (steppers + quick
+  scorelines) saving via the `savePrediction` server action with server-side kickoff lock.
+  Data layer: `src/lib/fixtures.ts`, `src/lib/predictions.ts`.
 - **Deployed on Vercel via GitHub integration — every push to `main` auto-deploys.**
   Production URL is in the Vercel dashboard (project `predikto`; GitHub
   `rafi-aman3/predikto`).
-- Next: Phase 2 (Fixtures + Match Predictions), then phases 3–6.
+- Next: **Phase 3 (Admin + Scoring engine)**, then phases 4–6.
 
 ## Source of truth
 
@@ -54,5 +58,6 @@ lean and fast.
 
 ## Workflow
 
-- brainstorm → writing-plans → subagent/inline execution; commit per task and push to
-  `main` (which auto-deploys on Vercel). Do not commit `.env*` or `.superpowers/`.
+- brainstorm → writing-plans → subagent/inline execution; **commit per task locally, push
+  once per completed phase** (each push to `main` auto-deploys on Vercel — one deploy per
+  phase). Do not commit `.env*` or `.superpowers/`.
