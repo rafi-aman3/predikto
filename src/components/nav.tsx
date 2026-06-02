@@ -6,7 +6,7 @@ const links = [
   { href: '/leaderboard', label: 'Leaderboard' },
 ];
 
-export function Nav() {
+export function Nav({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <nav className="flex items-center gap-4 bg-pitch text-cream px-4 py-3">
       <Link href="/" className="font-serif font-bold text-gold">
@@ -18,6 +18,11 @@ export function Nav() {
             {l.label}
           </Link>
         ))}
+        {isAdmin && (
+          <Link href="/admin" className="hover:text-gold font-bold">
+            Admin
+          </Link>
+        )}
       </div>
     </nav>
   );
