@@ -16,10 +16,17 @@ lean and fast.
   Calendar/Timeline/Stage views + group/stage filters; prediction card (steppers + quick
   scorelines) saving via the `savePrediction` server action with server-side kickoff lock.
   Data layer: `src/lib/fixtures.ts`, `src/lib/predictions.ts`.
+- **Phase 3 (Admin + Scoring): COMPLETE.** Admin match management at `/admin/matches`
+  (result entry + full metadata editing incl. TBD knockout slots; `scheduled|live|finished`
+  status), gated by the `ADMIN_EMAILS` allowlist. Scoring engine `src/lib/scoring.ts`
+  (`scoreMatch`, `computePredictionPoints`, `recomputeMatch`) recomputes match-prediction
+  points per result; reverting a result clears them. Scored fixtures cards. Data/config:
+  `src/lib/admin-matches.ts`, `src/lib/app-settings.ts`, `src/lib/admin.ts`. Settings
+  editor (scoring constants / lock / prize) deferred to Phase 4/5.
 - **Deployed on Vercel via GitHub integration — every push to `main` auto-deploys.**
   Production URL is in the Vercel dashboard (project `predikto`; GitHub
   `rafi-aman3/predikto`).
-- Next: **Phase 3 (Admin + Scoring engine)**, then phases 4–6.
+- Next: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
 
@@ -40,8 +47,12 @@ lean and fast.
   (`sb_publishable_…` → anon var, `sb_secret_…` → service-role var).
 - **Auth:** email + password only for now; **Google OAuth deferred** to a final step.
   Login UI in `src/app/auth/login`, onboarding gate in `src/app/onboarding`. Profiles
-  mirror `auth.users` via the `profiles` table; `isAdmin` flag gates admin (check
-  server-side).
+  mirror `auth.users` via the `profiles` table.
+- **Admin:** gated by the `ADMIN_EMAILS` env allowlist (comma-separated owner emails),
+  the source of truth — checked server-side via `getAdminUser` in `src/lib/admin.ts`
+  (admin layout guard + per-action re-check; never trusted from the client). Set it in
+  `.env.local` and the Vercel project env. (`profiles.isAdmin` exists but is not the gate
+  in v1.)
 - **Scoring constants live in the `app_settings` table** (tweakable without redeploy).
   Defaults: match exact +3 / result +1; bracket R16 +1, QF +2, SF +3, finalist +5;
   awards champion +10, others +5. Helpers in `src/lib/scoring-config.ts`.
