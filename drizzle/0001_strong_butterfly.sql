@@ -1,0 +1,1 @@
+ALTER TYPE "public"."stage" ADD VALUE 'third' BEFORE 'final';

@@ -2,7 +2,7 @@ import { groupByStage, groupByGroup, type FixtureMatch } from '@/lib/fixtures';
 import { MatchCard } from './match-card';
 
 const STAGE_LABEL: Record<string, string> = {
-  group: 'Group Stage', r32: 'Round of 32', r16: 'Round of 16', qf: 'Quarter-finals', sf: 'Semi-finals', final: 'Final',
+  group: 'Group Stage', r32: 'Round of 32', r16: 'Round of 16', qf: 'Quarter-finals', sf: 'Semi-finals', third: '3rd Place', final: 'Final',
 };
 
 export function StageNav({ matches, signedIn }: { matches: FixtureMatch[]; signedIn: boolean }) {

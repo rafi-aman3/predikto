@@ -3,7 +3,7 @@ import {
   pgEnum, unique,
 } from 'drizzle-orm/pg-core';
 
-export const stageEnum = pgEnum('stage', ['group', 'r32', 'r16', 'qf', 'sf', 'final']);
+export const stageEnum = pgEnum('stage', ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final']);
 export const matchStatusEnum = pgEnum('match_status', ['scheduled', 'live', 'finished']);
 export const adSlotEnum = pgEnum('ad_slot', ['sidebar', 'inline', 'footer']);
 

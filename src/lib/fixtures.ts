@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { matches, teams, venues } from '@/db/schema';
 import { isMatchLocked } from './locks';
 
-export type Stage = 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'final';
+export type Stage = 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third' | 'final';
 
 export type TeamLite = { id: string; code: string; name: string; flag: string | null };
 export type FixtureMatch = {
@@ -21,7 +21,7 @@ export type FixtureMatch = {
   locked: boolean;
 };
 
-const STAGE_ORDER: Stage[] = ['group', 'r32', 'r16', 'qf', 'sf', 'final'];
+const STAGE_ORDER: Stage[] = ['group', 'r32', 'r16', 'qf', 'sf', 'third', 'final'];
 
 /** Loads all matches enriched with team/venue data and (optionally) the user's predictions. */
 export async function getFixtures(

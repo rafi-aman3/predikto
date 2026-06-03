@@ -9,7 +9,7 @@ export type SeedTeam = {
 export type SeedVenue = { name: string; city?: string; country?: string };
 export type SeedMatch = {
   externalId: string;
-  stage: 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'final';
+  stage: 'group' | 'r32' | 'r16' | 'qf' | 'sf' | 'third' | 'final';
   groupName?: string;
   homeTeamCode: string | null;
   awayTeamCode: string | null;
