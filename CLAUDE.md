@@ -22,11 +22,20 @@ lean and fast.
   (`scoreMatch`, `computePredictionPoints`, `recomputeMatch`) recomputes match-prediction
   points per result; reverting a result clears them. Scored fixtures cards. Data/config:
   `src/lib/admin-matches.ts`, `src/lib/app-settings.ts`, `src/lib/admin.ts`. Settings
-  editor (scoring constants / lock / prize) deferred to Phase 4/5.
+  editor (scoring constants / lock / prize) deferred to Phase 4/5. A nav **Sign out**
+  button (`src/components/sign-out-button.tsx`) was also added.
 - **Deployed on Vercel via GitHub integration — every push to `main` auto-deploys.**
   Production URL is in the Vercel dashboard (project `predikto`; GitHub
   `rafi-aman3/predikto`).
-- Next: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
+- **NEXT SESSION — interleaved work before Phase 4 (plan written, NOT yet executed):**
+  Homepage live countdown + render all fixture times/day-grouping in the visitor's local
+  timezone + load the **full real WC2026 schedule** (48 teams, 16 venues, 104 matches incl.
+  third-place — adds a `third` stage enum). **Execute via subagent-driven-development.**
+  Spec: `docs/superpowers/specs/2026-06-03-countdown-fixtures-localtime-design.md`; plan:
+  `docs/superpowers/plans/2026-06-03-countdown-fixtures-localtime.md`. ⚠️ `data/seed.json`
+  is currently a **3-match / 3-team stub** — the real fixtures aren't loaded yet (Task 7
+  researches + loads them via the new `db:reset`).
+- Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
 
