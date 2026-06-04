@@ -58,19 +58,6 @@ export async function getFixtures(
     .sort((a, b) => a.kickoffAt.getTime() - b.kickoffAt.getTime());
 }
 
-export type DateGroup = { date: string; matches: FixtureMatch[] };
-
-export function groupByDate(list: FixtureMatch[]): DateGroup[] {
-  const byDate = new Map<string, FixtureMatch[]>();
-  for (const m of list) {
-    const date = m.kickoffAt.toISOString().slice(0, 10);
-    (byDate.get(date) ?? byDate.set(date, []).get(date)!).push(m);
-  }
-  return [...byDate.entries()]
-    .map(([date, ms]) => ({ date, matches: ms.sort((a, b) => a.kickoffAt.getTime() - b.kickoffAt.getTime()) }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-}
-
 export type StageGroup = { stage: Stage; matches: FixtureMatch[] };
 
 export function groupByStage(list: FixtureMatch[]): StageGroup[] {
