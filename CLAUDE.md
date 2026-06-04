@@ -27,14 +27,16 @@ lean and fast.
 - **Deployed on Vercel via GitHub integration — every push to `main` auto-deploys.**
   Production URL is in the Vercel dashboard (project `predikto`; GitHub
   `rafi-aman3/predikto`).
-- **NEXT SESSION — interleaved work before Phase 4 (plan written, NOT yet executed):**
-  Homepage live countdown + render all fixture times/day-grouping in the visitor's local
-  timezone + load the **full real WC2026 schedule** (48 teams, 16 venues, 104 matches incl.
-  third-place — adds a `third` stage enum). **Execute via subagent-driven-development.**
-  Spec: `docs/superpowers/specs/2026-06-03-countdown-fixtures-localtime-design.md`; plan:
-  `docs/superpowers/plans/2026-06-03-countdown-fixtures-localtime.md`. ⚠️ `data/seed.json`
-  is currently a **3-match / 3-team stub** — the real fixtures aren't loaded yet (Task 7
-  researches + loads them via the new `db:reset`).
+- **Interleaved pre-Phase-4 work (countdown + local time + full fixtures): COMPLETE.**
+  Homepage live `<Countdown>` to the first kickoff + "Next matches" teaser
+  (`src/app/page.tsx`); all fixture times **and** day-grouping render in the visitor's local
+  timezone via the `<LocalTime>` client component + the pure `groupByLocalDate`/`timeRemaining`
+  helpers (`src/lib/local-time.ts`); calendar-grid/timeline are now client components that
+  group locally. The **full real WC2026 schedule is loaded**: 48 teams (12 groups A–L),
+  16 venues, 104 matches incl. the third-place play-off (new `third` stage enum +
+  migration `drizzle/0001_strong_butterfly.sql`). ⚠️ Kickoff *times* in `data/seed.json` are
+  best-effort estimates — admin should verify exact times against the official FIFA schedule
+  before launch (dates/venues/matchups are sourced).
 - Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
@@ -69,11 +71,20 @@ lean and fast.
   awards lock at `app_settings.predictions_lock_at`. Never trust the client.
 - **Results are admin-entered** (no football API in v1); entering a result recomputes
   affected predictions.
-- **Seed:** `npm run db:seed` (idempotent) from `data/seed.json`.
+- **Seed:** `npm run db:seed` (idempotent) from `data/seed.json`. The full WC2026 schedule
+  (48 teams, 16 venues, 104 matches incl. third-place) lives in `data/seed.json`.
+  `npm run db:reset` truncates all data tables (`RESTART IDENTITY CASCADE`) then reseeds — a
+  clean slate that also **wipes predictions**, so it's pre-launch only. (Run once against the
+  prod `DATABASE_URL` to load the real fixtures there.)
+- **Local time + countdown:** all kickoff times and day-grouping render in the visitor's
+  browser timezone via the `<LocalTime>` client component (mount-guarded to avoid hydration
+  mismatch); the homepage shows a live `<Countdown>` to the first kickoff. Pure helpers
+  (`timeRemaining`, `groupByLocalDate`) live in `src/lib/local-time.ts` and are unit-tested.
 
 ## Commands
 
 - `npm run dev` · `npm run build` · `npm test` (Vitest) · `npm run lint` · `npm run db:seed`
+  · `npm run db:reset` (truncate + reseed — pre-launch only)
 - DB migrations: `npx drizzle-kit generate` then `npx drizzle-kit migrate`.
 
 ## Workflow
