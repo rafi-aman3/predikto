@@ -47,3 +47,6 @@ supabase/.temp
 
 # Brainstorm visual companion (local mockups, not committed)
 .superpowers/
+
+# UI/UX Pro Max skill (installed locally via `uipro init`, not committed)
+.claude/
