@@ -1,15 +1,14 @@
 import type { FixtureMatch } from '@/lib/fixtures';
 import { PredictionCard } from './prediction-card';
+import { LocalTime } from '@/components/local-time';
 
 const TBD = 'TBD';
-const fmtTime = (d: Date) =>
-  d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', month: 'short', day: 'numeric', timeZone: 'UTC' }) + ' UTC';
 
 export function MatchCard({ match, signedIn }: { match: FixtureMatch; signedIn: boolean }) {
   return (
     <div className="rp-card p-3 mb-2">
       <div className="text-[10px] uppercase tracking-wide text-pitch/60 font-bold text-center">
-        {fmtTime(match.kickoffAt)} · {match.venue?.name ?? TBD}
+        <LocalTime date={match.kickoffAt} format="datetime" /> · {match.venue?.name ?? TBD}
         {match.groupName ? ` · Group ${match.groupName}` : ''}
       </div>
       <div className="flex items-center justify-between my-2 font-bold">

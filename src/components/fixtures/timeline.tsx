@@ -1,17 +1,19 @@
-import { groupByDate, type FixtureMatch } from '@/lib/fixtures';
+'use client';
+import { groupByLocalDate } from '@/lib/local-time';
+import type { FixtureMatch } from '@/lib/fixtures';
+import { LocalTime } from '@/components/local-time';
 import { MatchCard } from './match-card';
 
-const fmtDate = (iso: string) =>
-  new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-
 export function Timeline({ matches, signedIn }: { matches: FixtureMatch[]; signedIn: boolean }) {
-  const groups = groupByDate(matches);
+  const groups = groupByLocalDate(matches);
   if (!groups.length) return <p className="rp-card p-4 text-center">No matches.</p>;
   return (
     <div>
       {groups.map((g) => (
-        <section key={g.date} className="mb-4">
-          <h2 className="font-bold border-b-2 border-pitch pb-1 mb-2 text-cream">{fmtDate(g.date)}</h2>
+        <section key={g.dateKey} className="mb-4">
+          <h2 className="font-bold border-b-2 border-pitch pb-1 mb-2 text-cream">
+            <LocalTime date={g.matches[0].kickoffAt} format="dayHeader" />
+          </h2>
           {g.matches.map((m) => <MatchCard key={m.id} match={m} signedIn={signedIn} />)}
         </section>
       ))}
