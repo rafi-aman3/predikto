@@ -5,7 +5,8 @@ const STAGES = [
   { key: '', label: 'All' },
   { key: 'group', label: 'Groups' },
   { key: 'r32', label: 'R32' }, { key: 'r16', label: 'R16' },
-  { key: 'qf', label: 'QF' }, { key: 'sf', label: 'SF' }, { key: 'final', label: 'Final' },
+  { key: 'qf', label: 'QF' }, { key: 'sf', label: 'SF' },
+  { key: 'third', label: '3rd' }, { key: 'final', label: 'Final' },
 ];
 
 export function Filters({
