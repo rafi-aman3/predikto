@@ -34,9 +34,10 @@ lean and fast.
   helpers (`src/lib/local-time.ts`); calendar-grid/timeline are now client components that
   group locally. The **full real WC2026 schedule is loaded**: 48 teams (12 groups A–L),
   16 venues, 104 matches incl. the third-place play-off (new `third` stage enum +
-  migration `drizzle/0001_strong_butterfly.sql`). ⚠️ Kickoff *times* in `data/seed.json` are
-  best-effort estimates — admin should verify exact times against the official FIFA schedule
-  before launch (dates/venues/matchups are sourced).
+  migration `drizzle/0001_strong_butterfly.sql`). Shipped to `main` + the migration applied
+  and the 104-match seed loaded into the (single, = prod) DB. ⚠️ Kickoff *times* in
+  `data/seed.json` are best-effort estimates — admin should verify exact times against the
+  official FIFA schedule before launch (dates/venues/matchups are sourced).
 - Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
@@ -56,6 +57,10 @@ lean and fast.
   `postgres({ prepare: false })`. Secrets in `.env.local` (gitignored); `drizzle.config.ts`
   and `src/db/index.ts` load it explicitly via dotenv. New API key format
   (`sb_publishable_…` → anon var, `sb_secret_…` → service-role var).
+  ⚠️ **Single Supabase project** (`ecqvztcqsgvfwmxbpnna`) — there is no separate dev/prod
+  database; `.env.local` and the Vercel prod env point at the **same** DB. So local
+  `drizzle-kit migrate` / `npm run db:reset` run against **production**. `db:reset` truncates
+  everything (incl. predictions) — treat as pre-launch only.
 - **Auth:** email + password only for now; **Google OAuth deferred** to a final step.
   Login UI in `src/app/auth/login`, onboarding gate in `src/app/onboarding`. Profiles
   mirror `auth.users` via the `profiles` table.
