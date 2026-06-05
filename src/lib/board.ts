@@ -42,7 +42,8 @@ export function pickNextUnpredicted(fixtures: FixtureMatch[], afterId: string): 
   const idx = fixtures.findIndex((m) => m.id === afterId);
   // Wrap excludes afterId itself so a just-predicted match is never returned as "next".
   const ordered = idx >= 0 ? [...fixtures.slice(idx + 1), ...fixtures.slice(0, idx)] : fixtures;
-  return ordered.find((m) => !m.prediction) ?? null;
+  // Skip matches the user can no longer predict (locked at kickoff) to avoid dead-end links.
+  return ordered.find((m) => !m.prediction && !m.locked) ?? null;
 }
 
 export type PredictionRow = { homeScore: number; awayScore: number };

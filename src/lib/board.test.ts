@@ -54,6 +54,14 @@ describe('pickNextUnpredicted', () => {
     const fixtures = [mk('m1', 'A', 'a', 'b', true), mk('m2', 'A', 'a', 'b', true)];
     expect(pickNextUnpredicted(fixtures, 'm1')).toBeNull();
   });
+  it('skips unpredicted matches that are already locked (kickoff passed)', () => {
+    const fixtures = [
+      mk('m1', 'A', 'a', 'b', true),
+      { ...mk('m2', 'A', 'a', 'b', false), locked: true },
+      mk('m3', 'A', 'a', 'b', false),
+    ];
+    expect(pickNextUnpredicted(fixtures, 'm1')?.id).toBe('m3');
+  });
 });
 
 describe('aggregatePredictions', () => {
