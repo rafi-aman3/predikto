@@ -22,7 +22,8 @@ export function SfxProvider({ children }: { children: React.ReactNode }) {
     const Actx = window.AudioContext ?? (window as WindowWithWebkit).webkitAudioContext;
     if (!Actx) return;
     const ctx = new Actx();
-    SFX_TONES[name].forEach((freq, i) => {
+    const tones = SFX_TONES[name];
+    tones.forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'square';
@@ -31,6 +32,8 @@ export function SfxProvider({ children }: { children: React.ReactNode }) {
       osc.connect(gain); gain.connect(ctx.destination);
       const t = ctx.currentTime + i * 0.09;
       osc.start(t); osc.stop(t + 0.08);
+      // Release the AudioContext after the last blip so rapid plays don't hit the per-page limit.
+      if (i === tones.length - 1) osc.addEventListener('ended', () => void ctx.close());
     });
   }, [enabled]);
 
