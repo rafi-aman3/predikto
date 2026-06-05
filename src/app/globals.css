@@ -1,15 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* Retro Pitch palette */
+  /* Retro Pitch Arcade palette */
   --color-pitch: #0a3d26;
   --color-pitch-light: #11663f;
+  --color-ink: #06231a;
   --color-gold: #ffcb05;
   --color-cream: #fff7e6;
+  --color-chalk: #f8fff4;
   --color-alert: #d7263d;
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-bungee);
+  --font-pixel: var(--font-vt323);
+  --font-sans: var(--font-nunito);
 }
 
 body {
