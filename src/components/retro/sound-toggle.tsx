@@ -9,6 +9,9 @@ const Ctx = createContext<{ enabled: boolean; toggle: () => void; play: (n: SfxN
 export function SfxProvider({ children }: { children: React.ReactNode }) {
   const [enabled, setEnabled] = useState(false);
 
+  // Intentional post-mount setState: localStorage is unavailable during SSR, so we read
+  // the saved preference after mount (muted by default until then).
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setEnabled(localStorage.getItem(KEY) === '1'); }, []);
 
   const toggle = useCallback(() => {

@@ -17,8 +17,10 @@ export function LocalTime({ date, format = 'time' }: { date: Date | string; form
   const ms = typeof date === 'string' ? new Date(date).getTime() : date.getTime();
   const [text, setText] = useState('');
   useEffect(() => {
-    if (Number.isNaN(ms)) { setText(''); return; }
-    setText(new Date(ms).toLocaleString('en-US', OPTS[format])); // no timeZone → browser local
+    // Intentional post-mount setState: browser-local time is unavailable during SSR,
+    // so we fill it in after mount to avoid a hydration mismatch (no timeZone → browser local).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setText(Number.isNaN(ms) ? '' : new Date(ms).toLocaleString('en-US', OPTS[format]));
   }, [ms, format]);
   return <span suppressHydrationWarning>{text}</span>;
 }
