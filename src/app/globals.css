@@ -78,6 +78,17 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.5px; }
 
 .pixelated { image-rendering: pixelated; }
 
+/* Subtle CRT scanline overlay (hero). Disabled under reduced-motion below. */
+.rp-scanlines { position: relative; overflow: hidden; }
+.rp-scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(6, 35, 26, 0.06) 3px 4px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rp-cta, .rp-hover-lift { transition: none; }
   .rp-cta:hover, .rp-hover-lift:hover { transform: none; }
