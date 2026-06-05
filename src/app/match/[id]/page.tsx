@@ -9,6 +9,7 @@ import { BadgeFlag } from '@/components/retro/badge-flag';
 import { GroupTag } from '@/components/retro/group-tag';
 import { LocalTime } from '@/components/local-time';
 import { PredictPanel } from '@/components/match/predict-panel';
+import { TeamLink } from '@/components/retro/team-link';
 
 export default async function MatchPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,15 +33,15 @@ export default async function MatchPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <div className="flex items-center justify-around my-4">
-          <div className="text-center">
+          <TeamLink code={match.home?.code} className="text-center block">
             <BadgeFlag flag={match.home?.flag ?? null} code={match.home?.code ?? 'TBD'} size="lg" />
             <div className="font-display text-base mt-2">{match.home?.name ?? 'TBD'}</div>
-          </div>
+          </TeamLink>
           <span className="font-pixel text-2xl text-alert">VS</span>
-          <div className="text-center">
+          <TeamLink code={match.away?.code} className="text-center block">
             <BadgeFlag flag={match.away?.flag ?? null} code={match.away?.code ?? 'TBD'} size="lg" />
             <div className="font-display text-base mt-2">{match.away?.name ?? 'TBD'}</div>
-          </div>
+          </TeamLink>
         </div>
 
         <PredictPanel match={match} signedIn={!!user} />
