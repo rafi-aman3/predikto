@@ -11,13 +11,13 @@ const TBD = 'TBD';
 export function MatchCard({ match, signedIn }: { match: FixtureMatch; signedIn: boolean }) {
   return (
     <StickerCard className="p-3 mb-2">
-      <Link
-        href={`/match/${match.id}`}
-        className="block font-pixel text-base text-pitch/60 text-center hover:text-pitch"
-      >
-        <LocalTime date={match.kickoffAt} format="datetime" /> · {match.venue?.name ?? TBD}
-        {match.groupName ? ` · Group ${match.groupName}` : ''} · details →
-      </Link>
+      <div className="flex items-center justify-between gap-2 font-pixel text-base text-pitch/60">
+        <span>
+          <LocalTime date={match.kickoffAt} format="datetime" /> · {match.venue?.name ?? TBD}
+          {match.groupName ? ` · Group ${match.groupName}` : ''}
+        </span>
+        <Link href={`/match/${match.id}`} className="text-alert hover:underline shrink-0">details →</Link>
+      </div>
       <div className="flex items-center justify-between my-2">
         <TeamLink code={match.home?.code} className="flex items-center gap-2 font-display text-sm">
           {match.home ? <><BadgeFlag flag={match.home.flag} code={match.home.code} size="sm" />{match.home.code}</> : TBD}
