@@ -38,6 +38,26 @@ lean and fast.
   and the 104-match seed loaded into the (single, = prod) DB. ⚠️ Kickoff *times* in
   `data/seed.json` are best-effort estimates — admin should verify exact times against the
   official FIFA schedule before launch (dates/venues/matchups are sourced).
+- **Retro Pitch Arcade design system + core pages (pre-Phase-4): COMPLETE & DEPLOYED.**
+  App-wide 16-bit "sticker-album arcade" re-skin. New `@theme` tokens `ink #06231a` /
+  `chalk #f8fff4`; fonts **Bungee** (display) / **VT323** (pixel numerals) / **Nunito** (body)
+  via `next/font/google` (Geist + Georgia dropped); `rp-*` utilities + `prefers-reduced-motion`
+  block in `globals.css`. Shared primitives in `src/components/retro/` (StickerCard, BadgeFlag,
+  StatusPill, GroupTag, PredictCTA, PixelCountdown, ScoreStepper/QuickScorelineChips,
+  PixelAvatar+`sprite.ts`, SoundToggle/SfxProvider/`useSfx`, TeamLink). Pure selectors
+  `src/lib/board.ts` (buildGroupBoard/buildRankStrip/pickNextUnpredicted/aggregatePredictions)
+  + `src/lib/standings.ts` (computeGroupStandings) + `src/lib/match-social.ts` + `src/lib/teams.ts`
+  — all TDD'd; **no schema changes**. New pages: game-board homepage (`src/app/page.tsx`),
+  **`/match/[id]`** predict page (steppers, lock countdown, circle-% revealed only *after* you
+  lock, next-unpredicted-match loop), **`/team/[code]`** (NES pixel-avatar lineup), **`/player/[id]`**,
+  **`/table`** group standings (in topbar; Pts→GD→GF→name). Country names/flags everywhere link to
+  the team page via `TeamLink`. Opt-in 8-bit SFX (muted by default, reduced-motion gated). Fixtures/
+  nav/auth/onboarding/admin restyled. **Phase-4 deferrals (intentional):** `/bracket` + `/leaderboard`
+  nav links 404; Golden Boot / Best Player buttons are visual-only; homepage rank-strip shows rank
+  "soon"; admin Save buttons use alert-red `rp-cta`. Specs/plans:
+  `docs/superpowers/specs/2026-06-05-retro-arcade-design-system-design.md`,
+  `docs/superpowers/plans/2026-06-05-retro-arcade-design-system.md`,
+  `docs/superpowers/plans/2026-06-06-standings-and-team-links.md`.
 - Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
@@ -51,8 +71,13 @@ lean and fast.
 - **Next.js 16 specifics:** middleware is `src/proxy.ts` (NOT `middleware.ts`); read
   `node_modules/next/dist/docs/` before relying on memorized Next APIs.
 - **Tailwind v4:** theme via `@theme` tokens in `src/app/globals.css` (no
-  `tailwind.config.ts`). Colors: `pitch #0a3d26`, `gold #ffcb05`, `cream #fff7e6`,
-  `alert #d7263d`. Serif headings (Georgia).
+  `tailwind.config.ts`). Colors: `pitch #0a3d26`, `pitch-light #11663f`, `ink #06231a`
+  (hard offset-shadow/outline), `gold #ffcb05`, `cream #fff7e6`, `chalk #f8fff4`,
+  `alert #d7263d`. ⚠️ Gold is fills/badges only — **never text on cream** (fails contrast).
+  Fonts (`next/font/google`): `font-display` Bungee (headings/buttons), `font-pixel` VT323
+  (scores/countdown/stats), `font-sans` Nunito (body/data). Reusable styles = `rp-*` utilities
+  (`.rp-card`/`.rp-cta`/`.rp-pill`/`.rp-tag`/`.rp-shadow*`/`.rp-hover-lift`/`.rp-stamp`/
+  `.rp-scanlines`), all decorative motion gated by `@media (prefers-reduced-motion: reduce)`.
 - **Supabase:** `DATABASE_URL` uses the transaction pooler (port 6543) with
   `postgres({ prepare: false })`. Secrets in `.env.local` (gitignored); `drizzle.config.ts`
   and `src/db/index.ts` load it explicitly via dotenv. New API key format
