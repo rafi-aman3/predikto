@@ -26,7 +26,7 @@ export default async function Onboarding() {
         className="border-2 border-pitch rounded-lg p-2"
         placeholder="Display name"
       />
-      <button className="bg-gold text-pitch font-bold rounded-lg py-2">Save</button>
+      <button className="rp-cta py-2">Save</button>
     </form>
   );
 }

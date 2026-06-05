@@ -51,7 +51,7 @@ export default function Login() {
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && <p className="text-alert text-sm">{error}</p>}
-        <button className="bg-gold text-pitch font-bold rounded-lg py-2">
+        <button className="rp-cta py-2">
           {mode === 'signup' ? 'Sign up' : 'Sign in'}
         </button>
       </form>

@@ -77,7 +77,7 @@ export function MatchRow({
         </select>
         <button
           onClick={submitResult} disabled={pending}
-          className="bg-pitch text-cream rounded px-3 py-1 text-xs font-bold disabled:opacity-60"
+          className="rp-cta px-3 py-1 text-xs disabled:opacity-60"
         >Save</button>
         <button
           onClick={() => setEditing((v) => !v)}
@@ -113,7 +113,7 @@ export function MatchRow({
           </label>
           <button
             onClick={submitMeta} disabled={pending}
-            className="col-span-2 bg-pitch text-cream rounded py-1 font-bold disabled:opacity-60"
+            className="col-span-2 rp-cta py-1 disabled:opacity-60"
           >Save details</button>
         </div>
       )}
