@@ -4,6 +4,7 @@ import { SoundToggle } from './retro/sound-toggle';
 
 const links = [
   { href: '/fixtures', label: 'Fixtures' },
+  { href: '/table', label: 'Table' },
   { href: '/bracket', label: 'Bracket' },
   { href: '/leaderboard', label: 'Leaderboard' },
 ];
