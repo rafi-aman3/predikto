@@ -40,7 +40,8 @@ export function buildRankStrip(fixtures: FixtureMatch[]): RankStrip {
 /** First unpredicted match strictly after `afterId`, wrapping to the start. Null if all predicted. */
 export function pickNextUnpredicted(fixtures: FixtureMatch[], afterId: string): FixtureMatch | null {
   const idx = fixtures.findIndex((m) => m.id === afterId);
-  const ordered = idx >= 0 ? [...fixtures.slice(idx + 1), ...fixtures.slice(0, idx + 1)] : fixtures;
+  // Wrap excludes afterId itself so a just-predicted match is never returned as "next".
+  const ordered = idx >= 0 ? [...fixtures.slice(idx + 1), ...fixtures.slice(0, idx)] : fixtures;
   return ordered.find((m) => !m.prediction) ?? null;
 }
 
