@@ -79,3 +79,29 @@ export function groupByGroup(list: FixtureMatch[]): NamedGroup[] {
     .map(([groupName, ms]) => ({ groupName, matches: ms }))
     .sort((a, b) => a.groupName.localeCompare(b.groupName));
 }
+
+export type RowState =
+  | { kind: 'predict' }
+  | { kind: 'picked'; pick: string }
+  | { kind: 'locked' }
+  | { kind: 'live'; score: string; pick: string | null }
+  | { kind: 'finished'; score: string; pick: string | null; points: number | null };
+
+/** Maps a fixture to how its compact row should present the user's prediction state. */
+export function predictionRowState(m: FixtureMatch): RowState {
+  const pick = m.prediction ? `${m.prediction.homeScore}–${m.prediction.awayScore}` : null;
+  if (m.status === 'finished') {
+    return {
+      kind: 'finished',
+      score: `${m.homeScore ?? 0}–${m.awayScore ?? 0}`,
+      pick,
+      points: m.prediction?.pointsAwarded ?? null,
+    };
+  }
+  if (m.status === 'live') {
+    return { kind: 'live', score: `${m.homeScore ?? 0}–${m.awayScore ?? 0}`, pick };
+  }
+  if (pick) return { kind: 'picked', pick };
+  if (m.locked) return { kind: 'locked' };
+  return { kind: 'predict' };
+}
