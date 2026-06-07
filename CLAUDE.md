@@ -12,10 +12,11 @@ lean and fast.
 ## Status
 
 - **Phase 1 (Foundation): COMPLETE.**
-- **Phase 2 (Fixtures + Match Predictions): COMPLETE.** `/fixtures` page with
-  Calendar/Timeline/Stage views + group/stage filters; prediction card (steppers + quick
-  scorelines) saving via the `savePrediction` server action with server-side kickoff lock.
-  Data layer: `src/lib/fixtures.ts`, `src/lib/predictions.ts`.
+- **Phase 2 (Fixtures + Match Predictions): COMPLETE.** `/fixtures` page (see the rework
+  bullet below for the current shape); predictions save via the `savePrediction` server
+  action (`src/app/fixtures/actions.ts`) with server-side kickoff lock. Data layer:
+  `src/lib/fixtures.ts` (now pure selectors/types) + `src/lib/get-fixtures.ts` (the DB read)
+  + `src/lib/predictions.ts`.
 - **Phase 3 (Admin + Scoring): COMPLETE.** Admin match management at `/admin/matches`
   (result entry + full metadata editing incl. TBD knockout slots; `scheduled|live|finished`
   status), gated by the `ADMIN_EMAILS` allowlist. Scoring engine `src/lib/scoring.ts`
@@ -58,6 +59,24 @@ lean and fast.
   `docs/superpowers/specs/2026-06-05-retro-arcade-design-system-design.md`,
   `docs/superpowers/plans/2026-06-05-retro-arcade-design-system.md`,
   `docs/superpowers/plans/2026-06-06-standings-and-team-links.md`.
+- **Fixtures page rework (pre-Phase-4): COMPLETE & DEPLOYED.** `/fixtures` re-done as a
+  sports-app-style hybrid: a segmented **By Day** (horizontal `DateStrip` of match days,
+  defaulting via `pickDefaultDay` — first match day pre-tournament, today/next during) and
+  **By Stage** (`StageBoard` sub-tabs: Groups A–L / R32 / … / Final). Compact **pick-forward
+  rows** (`MatchRow`): the whole row links to `/match/[id]` (no nested anchors — team
+  flag/code render plain, not `TeamLink`) and shows prediction state as a chip
+  (`PREDICT` / `YOU h–a` / `LOCKED` / `LIVE` / finished result + `+pts`) via the pure
+  `predictionRowState` selector. View/day/stage held in the URL and synced with
+  `history.replaceState` (no server refetch — all matches load once). **Removed:** the old
+  Calendar/Timeline/Stage three-view toggle, the group/stage filter chips, and the inline
+  `MatchCard`/`PredictionCard` (predicting now lives only on `/match/[id]`). New client-safe
+  split: `getFixtures` moved out of `fixtures.ts` (which imported `db`) into
+  `src/lib/get-fixtures.ts` so client components can import the pure selectors/types.
+  New components in `src/components/fixtures/`: `fixtures-view`, `date-strip`, `match-row`
+  (+ reworked `stage-nav`→`StageBoard`). `pickDefaultDay`/`predictionRowState` TDD'd; no
+  schema changes. Specs/plan:
+  `docs/superpowers/specs/2026-06-07-fixtures-rework-design.md`,
+  `docs/superpowers/plans/2026-06-07-fixtures-rework.md`.
 - Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
 
 ## Source of truth
