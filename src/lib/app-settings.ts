@@ -16,3 +16,9 @@ export async function getScoringConfig(): Promise<ScoringConfig> {
     ptsSurprise: r.ptsSurprise,
   };
 }
+
+/** Reads the editable prize text shown on the leaderboard #1. Null when unset. */
+export async function getPrizeText(): Promise<string | null> {
+  const [r] = await db.select().from(appSettings).where(eq(appSettings.id, 1));
+  return r?.prizeText ?? null;
+}
