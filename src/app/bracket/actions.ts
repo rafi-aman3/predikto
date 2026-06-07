@@ -70,33 +70,40 @@ export async function saveBracket(input: SaveBracketInput): Promise<SaveResult> 
     input.reached[stage].map((teamId) => ({ userId, stage, teamId, pointsAwarded: null as number | null })),
   );
 
-  await db.transaction(async (tx) => {
-    await tx.delete(groupPredictions).where(eq(groupPredictions.userId, userId));
-    if (groupRows.length) await tx.insert(groupPredictions).values(groupRows);
+  // Award ids are the only inputs validateBracket doesn't cover — a bad team/player id
+  // trips an FK constraint. Wrap so that surfaces as a friendly SaveResult, not a throw
+  // (the whole mutation is atomic, so a failure rolls back the deletes too).
+  try {
+    await db.transaction(async (tx) => {
+      await tx.delete(groupPredictions).where(eq(groupPredictions.userId, userId));
+      if (groupRows.length) await tx.insert(groupPredictions).values(groupRows);
 
-    await tx.delete(bracketPredictions).where(eq(bracketPredictions.userId, userId));
-    if (bracketRows.length) await tx.insert(bracketPredictions).values(bracketRows);
+      await tx.delete(bracketPredictions).where(eq(bracketPredictions.userId, userId));
+      if (bracketRows.length) await tx.insert(bracketPredictions).values(bracketRows);
 
-    await tx.insert(awardPredictions).values({
-      userId,
-      championTeamId: input.championTeamId,
-      runnerUpTeamId,
-      goldenBootPlayerId: input.awards.goldenBootPlayerId,
-      bestPlayerId: input.awards.bestPlayerId,
-      surpriseTeamId: input.awards.surpriseTeamId,
-      pointsAwarded: null,
-    }).onConflictDoUpdate({
-      target: awardPredictions.userId,
-      set: {
+      await tx.insert(awardPredictions).values({
+        userId,
         championTeamId: input.championTeamId,
         runnerUpTeamId,
         goldenBootPlayerId: input.awards.goldenBootPlayerId,
         bestPlayerId: input.awards.bestPlayerId,
         surpriseTeamId: input.awards.surpriseTeamId,
         pointsAwarded: null,
-      },
+      }).onConflictDoUpdate({
+        target: awardPredictions.userId,
+        set: {
+          championTeamId: input.championTeamId,
+          runnerUpTeamId,
+          goldenBootPlayerId: input.awards.goldenBootPlayerId,
+          bestPlayerId: input.awards.bestPlayerId,
+          surpriseTeamId: input.awards.surpriseTeamId,
+          pointsAwarded: null,
+        },
+      });
     });
-  });
+  } catch {
+    return { ok: false, error: 'Could not save your bracket. Please try again.' };
+  }
 
   revalidatePath('/bracket');
   revalidatePath('/leaderboard');
