@@ -43,7 +43,7 @@ export async function getBracketData(userId: string | null, now: Date = new Date
   }));
 
   let groupPicks: SavedGroupPick[] = [];
-  let reached = { r16: [] as string[], qf: [] as string[], sf: [] as string[], final: [] as string[] };
+  const reached = { r16: [] as string[], qf: [] as string[], sf: [] as string[], final: [] as string[] };
   let awards: SavedAwards | null = null;
 
   if (userId) {
