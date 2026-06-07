@@ -1,4 +1,4 @@
-import { getFixtures } from '@/lib/fixtures';
+import { getFixtures } from '@/lib/get-fixtures';
 import { db } from '@/db';
 import { teams as teamsTable } from '@/db/schema';
 import { computeGroupStandings } from '@/lib/standings';

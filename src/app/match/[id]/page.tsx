@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { getFixtures } from '@/lib/fixtures';
+import { getFixtures } from '@/lib/get-fixtures';
 import { getUserPredictionMap } from '@/lib/predictions';
 import { getScoringConfig } from '@/lib/app-settings';
 import { StickerCard } from '@/components/retro/sticker-card';
