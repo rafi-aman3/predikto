@@ -1,5 +1,3 @@
-import type { Stage } from './fixtures';
-
 /** Predicted final group order: group letter -> [1st, 2nd, 3rd, 4th] team ids. */
 export type PredictedStandings = Record<string, string[]>;
 
@@ -18,11 +16,6 @@ export const R32_TIES: Array<[string, string]> = [
   ['1I', '3#5'], ['1J', '2I'], ['1K', '3#6'], ['1L', '2J'],
   ['2A', '3#7'], ['2B', '2K'], ['2C', '3#8'], ['2D', '2L'],
 ];
-
-/** Number of ties at each knockout round, by index propagation. */
-export const ROUND_TIES: Record<Exclude<Stage, 'group' | 'third'>, number> = {
-  r32: 16, r16: 8, qf: 4, sf: 2, final: 1,
-};
 
 export type R32Tie = { tie: number; home: string | null; away: string | null };
 
