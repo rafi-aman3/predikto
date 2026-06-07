@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { R32_TIES, buildR32Field, type PredictedStandings } from './bracket';
+import { reconstructBracket, validateBracket, type ReachedSets } from './bracket';
 
 // Helper: 12 groups A..L, teams named "<group><pos>" e.g. "A1".."A4".
 const standings: PredictedStandings = Object.fromEntries(
@@ -36,5 +37,74 @@ describe('buildR32Field', () => {
   it('assigns thirds deterministically by their group letter regardless of input order', () => {
     const shuffled = ['H3', 'A3', 'D3', 'C3', 'F3', 'B3', 'E3', 'G3'];
     expect(buildR32Field(standings, shuffled)).toEqual(buildR32Field(standings, thirds));
+  });
+});
+
+describe('reconstructBracket', () => {
+  // Build a full deterministic run: at each round the HOME team always advances.
+  const r32 = buildR32Field(standings, thirds);
+  const r16Winners = r32.map((t) => t.home!);            // 16 home teams
+  const reached: ReachedSets = {
+    r16: new Set(r16Winners),
+    qf: new Set([0, 2, 4, 6, 8, 10, 12, 14].map((i) => r16Winners[i])), // homes of r16 ties
+    sf: new Set([0, 4, 8, 12].map((i) => r16Winners[i])),
+    final: new Set([0, 8].map((i) => r16Winners[i])),
+  };
+
+  it('builds 16/8/4/2/1 ties with winners drawn from the next round\'s reached set', () => {
+    const tree = reconstructBracket(standings, thirds, reached);
+    expect(tree.r32).toHaveLength(16);
+    expect(tree.r16).toHaveLength(8);
+    expect(tree.qf).toHaveLength(4);
+    expect(tree.sf).toHaveLength(2);
+    expect(tree.final).toHaveLength(1);
+    expect(tree.r32[0].winner).toBe('A1');
+    expect(tree.r16[0].home).toBe(r32[0].home);
+    expect(tree.r16[0].away).toBe(r32[1].home);
+    expect(tree.final[0].home).not.toBeNull();
+    expect(tree.final[0].away).not.toBeNull();
+  });
+});
+
+describe('validateBracket', () => {
+  const groupTeams = Object.fromEntries(
+    Object.entries(standings).map(([g, o]) => [g, [...o]]),
+  );
+  const fullReached = (() => {
+    const r32 = buildR32Field(standings, thirds);
+    const homes = r32.map((t) => t.home!);
+    return {
+      r16: homes,
+      qf: [0, 2, 4, 6, 8, 10, 12, 14].map((i) => homes[i]),
+      sf: [0, 4, 8, 12].map((i) => homes[i]),
+      final: [0, 8].map((i) => homes[i]),
+    };
+  })();
+
+  it('accepts a complete, consistent bracket', () => {
+    const res = validateBracket({ groupTeams, standings, chosenThirds: thirds, reached: fullReached });
+    expect(res.ok).toBe(true);
+  });
+
+  it('rejects when a group order is not a full permutation', () => {
+    const bad = { ...standings, A: ['A1', 'A1', 'A3', 'A4'] };
+    const res = validateBracket({ groupTeams, standings: bad, chosenThirds: thirds, reached: fullReached });
+    expect(res.ok).toBe(false);
+  });
+
+  it('rejects when not exactly 8 thirds are chosen', () => {
+    const res = validateBracket({ groupTeams, standings, chosenThirds: thirds.slice(0, 7), reached: fullReached });
+    expect(res.ok).toBe(false);
+  });
+
+  it('rejects an r16 set that is not one team per R32 tie', () => {
+    const r32 = buildR32Field(standings, thirds);
+    const homes = r32.map((t) => t.home!);
+    const broken = [...homes]; broken[1] = homes[0]; // two from tie 0, none from tie 1
+    const res = validateBracket({
+      groupTeams, standings, chosenThirds: thirds,
+      reached: { ...fullReached, r16: broken },
+    });
+    expect(res.ok).toBe(false);
   });
 });
