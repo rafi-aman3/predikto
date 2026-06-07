@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DEFAULT_SCORING } from './scoring-config';
-import { scoreGroupPredictions, pickActualAdvancingThirds } from './bracket-scoring';
+import { scoreGroupPredictions, pickActualAdvancingThirds, scoreBracket, scoreAwards } from './bracket-scoring';
 import type { GroupStandings, StandingRow } from './standings';
 
 const cfg = DEFAULT_SCORING;
@@ -43,5 +43,46 @@ describe('pickActualAdvancingThirds', () => {
   it('returns the best N third-placed teams across groups by points/gd/gf', () => {
     const thirds = pickActualAdvancingThirds(actualStandings, 1);
     expect(thirds).toEqual(new Set(['B3']));
+  });
+});
+
+describe('scoreBracket', () => {
+  const actualReached = {
+    r16: new Set(['X', 'Y', 'Z']),
+    qf: new Set(['X', 'Y']),
+    sf: new Set(['X']),
+    final: new Set(['X']),
+  };
+  it('awards per-stage points when the predicted team actually reached that stage', () => {
+    const preds = [
+      { stage: 'r16' as const, teamId: 'X' },
+      { stage: 'qf' as const, teamId: 'X' },
+      { stage: 'sf' as const, teamId: 'X' },
+      { stage: 'final' as const, teamId: 'X' },
+      { stage: 'r16' as const, teamId: 'Q' },
+    ];
+    const out = scoreBracket(preds, actualReached, cfg);
+    expect(out.map((o) => o.pointsAwarded)).toEqual([1, 2, 3, 5, 0]);
+  });
+});
+
+describe('scoreAwards', () => {
+  it('sums champion/runner-up/golden-boot/best-player/surprise for correct picks', () => {
+    const predicted = {
+      championTeamId: 'C', runnerUpTeamId: 'R',
+      goldenBootPlayerId: 'g', bestPlayerId: 'b', surpriseTeamId: 's',
+    };
+    const actual = {
+      championTeamId: 'C', runnerUpTeamId: 'X',
+      goldenBootPlayerId: 'g', bestPlayerId: 'z',
+      surpriseTeamId: 's',
+    };
+    expect(scoreAwards(predicted, actual, cfg)).toBe(20);
+  });
+
+  it('is zero when nothing matches or actuals are null', () => {
+    const predicted = { championTeamId: 'C', runnerUpTeamId: 'R', goldenBootPlayerId: 'g', bestPlayerId: 'b', surpriseTeamId: 's' };
+    const actual = { championTeamId: null, runnerUpTeamId: null, goldenBootPlayerId: null, bestPlayerId: null, surpriseTeamId: null };
+    expect(scoreAwards(predicted, actual, cfg)).toBe(0);
   });
 });
