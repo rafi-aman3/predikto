@@ -15,6 +15,13 @@
       "when": 1780512931165,
       "tag": "0001_strong_butterfly",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780845973562,
+      "tag": "0002_hesitant_steve_rogers",
+      "breakpoints": true
     }
   ]
 }

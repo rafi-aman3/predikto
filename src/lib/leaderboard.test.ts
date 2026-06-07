@@ -62,6 +62,32 @@ describe('buildLeaderboard', () => {
   });
 });
 
+describe('buildLeaderboard bonus', () => {
+  const players: LeaderPlayer[] = [
+    { id: 'a', displayName: 'A', avatarSeed: null },
+    { id: 'b', displayName: 'B', avatarSeed: null },
+  ];
+  const p = (userId: string, matchId: string, pts: number, exact = false): ScoredPrediction =>
+    ({ userId, matchId, homeScore: 0, awayScore: 0, pointsAwarded: pts, exact });
+
+  it('adds per-user bonus points to the overall total', () => {
+    const rows = buildLeaderboard(players, [p('a', 'm1', 1), p('b', 'm1', 1)], { bonusByUser: { a: 10 } });
+    const a = rows.find((r) => r.userId === 'a')!;
+    const b = rows.find((r) => r.userId === 'b')!;
+    expect(a.points).toBe(11);
+    expect(b.points).toBe(1);
+    expect(a.rank).toBe(1);
+  });
+
+  it('ignores bonus when a match scope is set (per-round/by-match stay match-only)', () => {
+    const rows = buildLeaderboard(
+      players, [p('a', 'm1', 1)],
+      { matchIdsInScope: new Set(['m1']), bonusByUser: { a: 10 } },
+    );
+    expect(rows.find((r) => r.userId === 'a')!.points).toBe(1);
+  });
+});
+
 describe('buildMatchLeaderboard', () => {
   it('lists each player pick + points for one match, null pick when not predicted', () => {
     const rows = buildMatchLeaderboard('m1', players, [

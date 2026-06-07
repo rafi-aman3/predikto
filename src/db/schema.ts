@@ -81,6 +81,18 @@ export const bracketPredictions = pgTable('bracket_predictions', {
   pointsAwarded: integer('points_awarded'),
 }, (t) => ({ uniqUserStageTeam: unique().on(t.userId, t.stage, t.teamId) }));
 
+// One row per team per user: the predicted final group position (1..4) and, for
+// position-3 rows, whether the user picked that third to advance (exactly 8 across all groups).
+export const groupPredictions = pgTable('group_predictions', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+  groupName: text('group_name').notNull(),       // "A".."L"
+  teamId: uuid('team_id').references(() => teams.id).notNull(),
+  position: integer('position').notNull(),        // 1..4
+  advancesAsThird: boolean('advances_as_third').default(false).notNull(),
+  pointsAwarded: integer('points_awarded'),       // null until scored
+}, (t) => ({ uniqUserTeam: unique().on(t.userId, t.teamId) }));
+
 export const awardPredictions = pgTable('award_predictions', {
   userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).primaryKey(),
   championTeamId: uuid('champion_team_id').references(() => teams.id),
@@ -117,4 +129,9 @@ export const appSettings = pgTable('app_settings', {
   ptsGoldenBoot: integer('pts_golden_boot').default(5).notNull(),
   ptsBestPlayer: integer('pts_best_player').default(5).notNull(),
   ptsSurprise: integer('pts_surprise').default(5).notNull(),
+  ptsGroupPosition: integer('pts_group_position').default(2).notNull(),
+  ptsThirdQualifier: integer('pts_third_qualifier').default(1).notNull(),
+  actualGoldenBootPlayerId: uuid('actual_golden_boot_player_id').references(() => players.id),
+  actualBestPlayerId: uuid('actual_best_player_id').references(() => players.id),
+  actualSurpriseTeamId: uuid('actual_surprise_team_id').references(() => teams.id),
 });

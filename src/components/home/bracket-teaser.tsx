@@ -14,7 +14,7 @@ export function BracketTeaser() {
           ))}
           <span className="font-pixel text-base bg-gold border-[3px] border-pitch rounded-lg rp-shadow-sm px-3 py-1">Final ?</span>
         </div>
-        <Link href="/fixtures?stage=r16" className="rp-cta inline-block px-5 py-3">Build your bracket</Link>
+        <Link href="/bracket" className="rp-cta inline-block px-5 py-3">Build your bracket</Link>
       </StickerCard>
     </section>
   );

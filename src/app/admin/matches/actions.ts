@@ -6,6 +6,7 @@ import {
   setMatchResult, updateMatchMeta, type MatchStatus, type MatchMeta,
 } from '@/lib/admin-matches';
 import { recomputeMatch } from '@/lib/scoring';
+import { recomputeBracketsAndGroups, recomputeAwards } from '@/lib/bracket-recompute';
 
 export type AdminResult = { ok: boolean; error?: string };
 
@@ -30,8 +31,16 @@ export async function saveResult(
 
   await setMatchResult(matchId, home, away, status);
   await recomputeMatch(matchId);
+  // The result is already saved; bracket/group/award recompute is best-effort and
+  // idempotent (a later save heals any miss), so don't fail the action if it throws.
+  try {
+    await recomputeBracketsAndGroups();
+    await recomputeAwards();
+  } catch { /* recompute is self-healing on the next save */ }
   revalidatePath('/fixtures');
   revalidatePath('/admin/matches');
+  revalidatePath('/leaderboard');
+  revalidatePath('/bracket');
   return { ok: true };
 }
 
@@ -40,8 +49,14 @@ export async function saveMatchMeta(matchId: string, meta: MatchMeta): Promise<A
   if (Number.isNaN(meta.kickoffAt.getTime())) return { ok: false, error: 'Invalid kickoff time.' };
 
   await updateMatchMeta(matchId, meta);
-  // Metadata edits do not affect scoring, so no recompute.
+  // Filling a TBD knockout slot changes reached-round actuals, so recompute brackets/groups
+  // (best-effort + idempotent — don't fail the metadata save if recompute throws).
+  try {
+    await recomputeBracketsAndGroups();
+  } catch { /* recompute is self-healing on the next save */ }
   revalidatePath('/fixtures');
   revalidatePath('/admin/matches');
+  revalidatePath('/leaderboard');
+  revalidatePath('/bracket');
   return { ok: true };
 }

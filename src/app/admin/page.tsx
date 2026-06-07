@@ -10,7 +10,13 @@ export default function AdminHome() {
       >
         ⚽ Matches & Results →
       </Link>
-      <p className="text-sm text-pitch/60">Ads and settings management arrive in later phases.</p>
+      <Link
+        href="/admin/settings"
+        className="rp-card p-4 font-bold text-pitch hover:bg-gold/20"
+      >
+        ⚙️ Awards & Settings →
+      </Link>
+      <p className="text-sm text-pitch/60">Ads management arrives in Phase 6.</p>
     </div>
   );
 }

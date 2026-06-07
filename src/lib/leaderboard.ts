@@ -44,9 +44,10 @@ const name = (s: string | null) => s ?? '';
 export function buildLeaderboard(
   players: LeaderPlayer[],
   predictions: ScoredPrediction[],
-  opts?: { matchIdsInScope?: Set<string> },
+  opts?: { matchIdsInScope?: Set<string>; bonusByUser?: Record<string, number> },
 ): LeaderRow[] {
   const scope = opts?.matchIdsInScope;
+  const bonus = opts?.bonusByUser;
   const agg = new Map<string, { points: number; exactCount: number; predictedCount: number }>();
   for (const pl of players) agg.set(pl.id, { points: 0, exactCount: 0, predictedCount: 0 });
 
@@ -57,6 +58,14 @@ export function buildLeaderboard(
     a.predictedCount += 1;
     a.points += pred.pointsAwarded ?? 0;
     if (pred.exact) a.exactCount += 1;
+  }
+
+  // Non-match points (group/bracket/awards) fold into the overall total only.
+  if (!scope && bonus) {
+    for (const [userId, pts] of Object.entries(bonus)) {
+      const a = agg.get(userId);
+      if (a) a.points += pts;
+    }
   }
 
   const rows: LeaderRow[] = players.map((pl) => {
