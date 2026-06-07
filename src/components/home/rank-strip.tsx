@@ -1,9 +1,9 @@
 import { StickerCard } from '@/components/retro/sticker-card';
 import type { RankStrip as RankData } from '@/lib/board';
 
-export function RankStrip({ data }: { data: RankData }) {
+export function RankStrip({ data, rank, players }: { data: RankData; rank?: number | null; players?: number }) {
   const cells = [
-    { label: 'Rank', value: 'soon' },
+    { label: players ? `of ${players}` : 'Rank', value: rank != null ? `#${rank}` : '—' },
     { label: 'Points', value: data.points },
     { label: 'Predicted', value: `${data.predicted}/${data.total}` },
     { label: 'To Predict', value: data.matchesLeft },

@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { getFixtures } from '@/lib/get-fixtures';
 import { getUserPredictionMap } from '@/lib/predictions';
 import { buildGroupBoard, buildRankStrip } from '@/lib/board';
+import { getLeaderboardData } from '@/lib/get-leaderboard';
+import { buildLeaderboard } from '@/lib/leaderboard';
 import { db } from '@/db';
 import { teams as teamsTable, venues as venuesTable } from '@/db/schema';
 import { Countdown } from '@/components/countdown';
@@ -30,6 +32,15 @@ export default async function Home() {
   );
   const stadiums = venueRows.map((v) => ({ name: v.name, city: v.city }));
 
+  let myRank: number | null = null;
+  let playerCount = 0;
+  if (user) {
+    const { players, predictions } = await getLeaderboardData();
+    const board = buildLeaderboard(players, predictions);
+    playerCount = board.length;
+    myRank = board.find((r) => r.userId === user.id)?.rank ?? null;
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <StickerCard className="text-center rp-scanlines">
@@ -41,7 +52,7 @@ export default async function Home() {
         </div>
       </StickerCard>
 
-      {user && predictionMap ? <RankStrip data={buildRankStrip(fixtures)} /> : null}
+      {user && predictionMap ? <RankStrip data={buildRankStrip(fixtures)} rank={myRank} players={playerCount} /> : null}
 
       <GroupBoard groups={groups} />
       <StadiumRow stadiums={stadiums} />
