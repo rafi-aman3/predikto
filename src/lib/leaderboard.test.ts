@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildLeaderboard, type LeaderPlayer, type ScoredPrediction } from './leaderboard';
+import { buildLeaderboard, buildMatchLeaderboard, type LeaderPlayer, type ScoredPrediction } from './leaderboard';
 
 const players: LeaderPlayer[] = [
   { id: 'a', displayName: 'Ana', avatarSeed: null },
@@ -59,5 +59,30 @@ describe('buildLeaderboard', () => {
 
   it('returns empty for no players', () => {
     expect(buildLeaderboard([], [p('a', 'm1', 3)])).toEqual([]);
+  });
+});
+
+describe('buildMatchLeaderboard', () => {
+  it('lists each player pick + points for one match, null pick when not predicted', () => {
+    const rows = buildMatchLeaderboard('m1', players, [
+      { userId: 'a', matchId: 'm1', homeScore: 2, awayScore: 1, pointsAwarded: 3, exact: true },
+      { userId: 'b', matchId: 'm1', homeScore: 0, awayScore: 0, pointsAwarded: null, exact: false },
+    ]);
+    const ana = rows.find((r) => r.userId === 'a')!;
+    const cy = rows.find((r) => r.userId === 'c')!;
+    expect(ana.pick).toEqual({ home: 2, away: 1 });
+    expect(ana.points).toBe(3);
+    expect(cy.pick).toBeNull();
+    expect(cy.points).toBeNull();
+  });
+
+  it('sorts by points desc (null/unscored last), then predictors, then name', () => {
+    const rows = buildMatchLeaderboard('m1', players, [
+      { userId: 'b', matchId: 'm1', homeScore: 1, awayScore: 1, pointsAwarded: 1, exact: false },
+      { userId: 'a', matchId: 'm1', homeScore: 2, awayScore: 1, pointsAwarded: 3, exact: true },
+    ]);
+    expect(rows[0].userId).toBe('a');
+    expect(rows[1].userId).toBe('b');
+    expect(rows[2].userId).toBe('c');
   });
 });

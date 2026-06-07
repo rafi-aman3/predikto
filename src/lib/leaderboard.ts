@@ -83,3 +83,38 @@ export function buildLeaderboard(
 
   return rows;
 }
+
+export type MatchLeaderRow = {
+  userId: string;
+  displayName: string | null;
+  avatarSeed: string | null;
+  pick: { home: number; away: number } | null;
+  points: number | null;
+};
+
+/** Per-player pick + points for a single match. For the leaderboard "By match" tab. */
+export function buildMatchLeaderboard(
+  matchId: string,
+  players: LeaderPlayer[],
+  predictions: ScoredPrediction[],
+): MatchLeaderRow[] {
+  const byUser = new Map<string, ScoredPrediction>();
+  for (const pred of predictions) if (pred.matchId === matchId) byUser.set(pred.userId, pred);
+
+  const rows: MatchLeaderRow[] = players.map((pl) => {
+    const pred = byUser.get(pl.id);
+    return {
+      userId: pl.id, displayName: pl.displayName, avatarSeed: pl.avatarSeed,
+      pick: pred ? { home: pred.homeScore, away: pred.awayScore } : null,
+      points: pred ? pred.pointsAwarded : null,
+    };
+  });
+
+  rows.sort((x, y) =>
+    (y.points ?? -1) - (x.points ?? -1) ||
+    (Number(!!y.pick) - Number(!!x.pick)) ||
+    name(x.displayName).localeCompare(name(y.displayName)),
+  );
+
+  return rows;
+}
