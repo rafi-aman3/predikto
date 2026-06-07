@@ -118,3 +118,61 @@ export function buildMatchLeaderboard(
 
   return rows;
 }
+
+export type Side = 'me' | 'them' | 'tie';
+
+export type H2HRow = {
+  matchId: string;
+  locked: boolean;
+  myPick: { home: number; away: number } | null;
+  myPoints: number | null;
+  theirPick: { home: number; away: number } | null;
+  theirPoints: number | null;
+  winner: Side | null;
+};
+
+export type HeadToHead = { rows: H2HRow[]; myTotal: number; theirTotal: number; leader: Side };
+
+/**
+ * Compares two players match-by-match. The opponent's pick and points are hidden until the
+ * match locks (kickoff) so picks can't be copied; the viewer's own pick always shows.
+ * `matchIdsInOrder` controls row order (chronological); `isLocked` gates opponent visibility.
+ */
+export function buildHeadToHead(
+  meId: string,
+  themId: string,
+  matchIdsInOrder: string[],
+  predictions: ScoredPrediction[],
+  isLocked: (matchId: string) => boolean,
+): HeadToHead {
+  const key = (u: string, m: string) => `${u}:${m}`;
+  const idx = new Map<string, ScoredPrediction>();
+  for (const pred of predictions) idx.set(key(pred.userId, pred.matchId), pred);
+
+  let myTotal = 0;
+  let theirTotal = 0;
+  const rows: H2HRow[] = matchIdsInOrder.map((matchId) => {
+    const locked = isLocked(matchId);
+    const mine = idx.get(key(meId, matchId));
+    const theirs = idx.get(key(themId, matchId));
+    const myPoints = mine?.pointsAwarded ?? null;
+    const theirPoints = locked ? (theirs?.pointsAwarded ?? null) : null;
+    myTotal += myPoints ?? 0;
+    theirTotal += theirPoints ?? 0;
+    let winner: Side | null = null;
+    if (myPoints != null && theirPoints != null) {
+      winner = myPoints > theirPoints ? 'me' : myPoints < theirPoints ? 'them' : 'tie';
+    }
+    return {
+      matchId, locked,
+      myPick: mine ? { home: mine.homeScore, away: mine.awayScore } : null,
+      myPoints,
+      theirPick: locked && theirs ? { home: theirs.homeScore, away: theirs.awayScore } : null,
+      theirPoints,
+      winner,
+    };
+  });
+
+  const leader: Side = myTotal > theirTotal ? 'me' : myTotal < theirTotal ? 'them' : 'tie';
+  return { rows, myTotal, theirTotal, leader };
+}

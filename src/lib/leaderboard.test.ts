@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildLeaderboard, buildMatchLeaderboard, type LeaderPlayer, type ScoredPrediction } from './leaderboard';
+import { buildLeaderboard, buildMatchLeaderboard, buildHeadToHead, type LeaderPlayer, type ScoredPrediction } from './leaderboard';
 
 const players: LeaderPlayer[] = [
   { id: 'a', displayName: 'Ana', avatarSeed: null },
@@ -84,5 +84,44 @@ describe('buildMatchLeaderboard', () => {
     expect(rows[0].userId).toBe('a');
     expect(rows[1].userId).toBe('b');
     expect(rows[2].userId).toBe('c');
+  });
+});
+
+describe('buildHeadToHead', () => {
+  const preds: ScoredPrediction[] = [
+    { userId: 'a', matchId: 'm1', homeScore: 2, awayScore: 1, pointsAwarded: 3, exact: true },
+    { userId: 'b', matchId: 'm1', homeScore: 1, awayScore: 1, pointsAwarded: 0, exact: false },
+    { userId: 'a', matchId: 'm2', homeScore: 0, awayScore: 0, pointsAwarded: null, exact: false },
+    { userId: 'b', matchId: 'm2', homeScore: 3, awayScore: 0, pointsAwarded: null, exact: false },
+  ];
+  const allLocked = () => true;
+
+  it('totals each side and names the leader; per-row winner on scored matches', () => {
+    const h = buildHeadToHead('a', 'b', ['m1', 'm2'], preds, allLocked);
+    expect(h.myTotal).toBe(3);
+    expect(h.theirTotal).toBe(0);
+    expect(h.leader).toBe('me');
+    const m1 = h.rows.find((r) => r.matchId === 'm1')!;
+    expect(m1.winner).toBe('me');
+    const m2 = h.rows.find((r) => r.matchId === 'm2')!;
+    expect(m2.winner).toBeNull();
+  });
+
+  it('hides the opponent pick (and points) until the match is locked; own pick always shows', () => {
+    const lockedOnly = (id: string) => id === 'm1';
+    const h = buildHeadToHead('a', 'b', ['m1', 'm2'], preds, lockedOnly);
+    const m2 = h.rows.find((r) => r.matchId === 'm2')!;
+    expect(m2.myPick).toEqual({ home: 0, away: 0 });
+    expect(m2.theirPick).toBeNull();
+    expect(m2.theirPoints).toBeNull();
+  });
+
+  it('reports a tie when totals are equal', () => {
+    const h = buildHeadToHead('a', 'b', ['m1'], [
+      { userId: 'a', matchId: 'm1', homeScore: 1, awayScore: 0, pointsAwarded: 1, exact: false },
+      { userId: 'b', matchId: 'm1', homeScore: 0, awayScore: 1, pointsAwarded: 1, exact: false },
+    ], allLocked);
+    expect(h.leader).toBe('tie');
+    expect(h.rows[0].winner).toBe('tie');
   });
 });
