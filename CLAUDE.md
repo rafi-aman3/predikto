@@ -94,7 +94,36 @@ lean and fast.
   `app-settings.ts`; admin prize editor deferred to Phase 6. No schema changes. Specs/plan:
   `docs/superpowers/specs/2026-06-07-leaderboard-and-head-to-head-design.md`,
   `docs/superpowers/plans/2026-06-07-leaderboard-and-head-to-head.md`.
-- Then: **Phase 5 (Bracket + Awards)**, then Phase 6 (Profiles + Ads + Polish).
+- **Phase 5 (Bracket + Awards): COMPLETE.** `/bracket` is an interactive **bracket simulator**
+  (Telegraph-style, single reactive page with a sticky section-nav — NOT a wizard): order all 12
+  groups 1→4 → pick the best 8 of your 12 third-placed teams → R32 **auto-seeds** → tap winners up
+  the tree (R32→R16→QF→SF→Final) → pick Champion (from your 2 finalists) → awards panel (Golden
+  Boot / Best Player / Surprise; champion+runner-up derived from the final). Saves via the
+  `saveBracket` server action (auth + server-side lock at `app_settings.predictions_lock_at` +
+  structural `validateBracket` + transactional upsert). **Group predictions ARE scored** (exact
+  position +2/team, advancing-3rd +1) alongside reaches-round bracket points (R16 +1 / QF +2 /
+  SF +3 / Final +5) and awards (champion +10, others +5) — all auto-derived from real results
+  (group standings via `computeGroupStandings`, reached-round from knockout match participants,
+  champion/runner-up from the final) and recomputed for all users on admin result/settings save
+  (`src/lib/bracket-recompute.ts`). All points live in `pointsAwarded`, folded into the
+  leaderboard **Overall** total via a `bonusByUser` arg on `buildLeaderboard`. New
+  `/admin/settings` = full editor (award actuals + predictions lock date + prize text + ALL
+  scoring constants). **Schema change:** new `group_predictions` table + `app_settings` cols
+  `pts_group_position`/`pts_third_qualifier`/`actual_{golden_boot_player,best_player,surprise_team}_id`
+  (migration `drizzle/0002_hesitant_steve_rogers.sql`, applied to the single = prod DB). Pure
+  TDD'd `src/lib/bracket.ts` (`R32_TIES` tunable template — ⚠️ **simplified deterministic**
+  seeding: real top-2 wiring + ranked thirds fill, NOT FIFA's combination table; **verify
+  pairings vs the official bracket before launch**; `buildR32Field`, `reconstructBracket` &
+  `validateBracket` are order-independent/Set-based) + `src/lib/bracket-scoring.ts` + thin
+  reader `src/lib/get-bracket.ts`. UI in `src/components/bracket/` (simulator, group-orderer,
+  thirds-picker, knockout-tree, awards-panel). Nav `/bracket` link + homepage teaser now resolve.
+  ⚠️ Penalty-shootout finals aren't modeled — a drawn final yields no champion, so admin enters a
+  decisive score reflecting the shootout winner. Specs/plan:
+  `docs/superpowers/specs/2026-06-07-bracket-and-awards-design.md`,
+  `docs/superpowers/plans/2026-06-07-bracket-and-awards.md`.
+- Then: **Phase 6 (Profiles + Ads + Polish)** — team/player profile pages, ad slot rendering +
+  admin management, responsive polish. (Golden Boot / Best Player CTAs on `/match` are still
+  visual-only; the real award picks live on `/bracket`.)
 
 ## Source of truth
 
