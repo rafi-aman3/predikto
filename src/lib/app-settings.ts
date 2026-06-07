@@ -71,6 +71,9 @@ export async function updateAppSettings(patch: Partial<{
       if (scoring[k] != null) values[map[k]] = scoring[k];
     }
   }
+  // An empty `set` would emit invalid SQL (`... do update set `), so no-op when there's
+  // nothing to write.
+  if (Object.keys(values).length === 0) return;
   await db.insert(appSettings).values({ id: 1, ...values })
     .onConflictDoUpdate({ target: appSettings.id, set: values });
 }
