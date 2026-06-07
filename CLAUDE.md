@@ -53,9 +53,10 @@ lean and fast.
   lock, next-unpredicted-match loop), **`/team/[code]`** (NES pixel-avatar lineup), **`/player/[id]`**,
   **`/table`** group standings (in topbar; Pts→GD→GF→name). Country names/flags everywhere link to
   the team page via `TeamLink`. Opt-in 8-bit SFX (muted by default, reduced-motion gated). Fixtures/
-  nav/auth/onboarding/admin restyled. **Phase-4 deferrals (intentional):** `/bracket` + `/leaderboard`
-  nav links 404; Golden Boot / Best Player buttons are visual-only; homepage rank-strip shows rank
-  "soon"; admin Save buttons use alert-red `rp-cta`. Specs/plans:
+  nav/auth/onboarding/admin restyled. **Remaining deferrals (intentional):** `/bracket` nav
+  link 404s (Phase 5); Golden Boot / Best Player buttons are visual-only (Phase 5); admin Save
+  buttons use alert-red `rp-cta`. (`/leaderboard` + homepage rank shipped in Phase 4 below.)
+  Specs/plans:
   `docs/superpowers/specs/2026-06-05-retro-arcade-design-system-design.md`,
   `docs/superpowers/plans/2026-06-05-retro-arcade-design-system.md`,
   `docs/superpowers/plans/2026-06-06-standings-and-team-links.md`.
@@ -77,7 +78,23 @@ lean and fast.
   schema changes. Specs/plan:
   `docs/superpowers/specs/2026-06-07-fixtures-rework-design.md`,
   `docs/superpowers/plans/2026-06-07-fixtures-rework.md`.
-- Then: **Phase 4 (Leaderboard + Head-to-Head)**, then phases 5–6.
+- **Phase 4 (Leaderboard + Head-to-Head): COMPLETE & DEPLOYED.** `/leaderboard` page —
+  top-3 **podium** (👑 #1 + prize marker read from `app_settings.prizeText`) and tabs
+  **Overall** / **This round** (by stage selector) / **By match** (per-player picks; only
+  *locked* matches selectable so picks don't leak). `/h2h` **head-to-head** — you vs a friend
+  picked from a dropdown, running who-leads + totals, per-match comparison; **a friend's pick
+  is hidden (🔒) until that match locks**. Leaderboard rows link to `/h2h?vs=<userId>`; tab/
+  stage/match/vs held in the URL via `history.replaceState`. Homepage `RankStrip` now shows
+  the real overall rank (`#n of m`) instead of "soon". Pure TDD'd selectors
+  `src/lib/leaderboard.ts` (`buildLeaderboard` — points→exact-count→name, shared "1224" ranks,
+  optional stage scope; `buildMatchLeaderboard`; `buildHeadToHead`) + thin DB reader
+  `src/lib/get-leaderboard.ts` (precomputes per-prediction `exact` from the live scoring
+  config; reuses `getFixtures` for match metadata). Totals are `SUM(pointsAwarded)`, so
+  Phase-5 bracket/award points fold in automatically. `getPrizeText()` added to
+  `app-settings.ts`; admin prize editor deferred to Phase 6. No schema changes. Specs/plan:
+  `docs/superpowers/specs/2026-06-07-leaderboard-and-head-to-head-design.md`,
+  `docs/superpowers/plans/2026-06-07-leaderboard-and-head-to-head.md`.
+- Then: **Phase 5 (Bracket + Awards)**, then Phase 6 (Profiles + Ads + Polish).
 
 ## Source of truth
 
