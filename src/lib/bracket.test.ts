@@ -107,4 +107,39 @@ describe('validateBracket', () => {
     });
     expect(res.ok).toBe(false);
   });
+
+  // Backstop isolation: count stays exactly 16 but tie 0 holds BOTH participants while
+  // tie 1 is orphaned — the size check passes, so the winner!=null check must reject it.
+  it('rejects when the count is right but a tie has both/neither participant', () => {
+    const r32 = buildR32Field(standings, thirds);
+    const homes = r32.map((t) => t.home!);
+    const orphan = [...homes]; orphan[1] = r32[0].away!; // 16 distinct, but tie0 both / tie1 none
+    expect(new Set(orphan).size).toBe(16);
+    const res = validateBracket({
+      groupTeams, standings, chosenThirds: thirds,
+      reached: { ...fullReached, r16: orphan },
+    });
+    expect(res.ok).toBe(false);
+  });
+});
+
+describe('reconstructBracket order-independence', () => {
+  it('produces an identical tree regardless of reached insertion order', () => {
+    const r32 = buildR32Field(standings, thirds);
+    const homes = r32.map((t) => t.home!);
+    const base = {
+      r16: homes,
+      qf: [0, 2, 4, 6, 8, 10, 12, 14].map((i) => homes[i]),
+      sf: [0, 4, 8, 12].map((i) => homes[i]),
+      final: [0, 8].map((i) => homes[i]),
+    };
+    const toSets = (r: typeof base): ReachedSets =>
+      ({ r16: new Set(r.r16), qf: new Set(r.qf), sf: new Set(r.sf), final: new Set(r.final) });
+    const reversed = {
+      r16: [...base.r16].reverse(), qf: [...base.qf].reverse(),
+      sf: [...base.sf].reverse(), final: [...base.final].reverse(),
+    };
+    expect(reconstructBracket(standings, thirds, toSets(reversed)))
+      .toEqual(reconstructBracket(standings, thirds, toSets(base)));
+  });
 });
