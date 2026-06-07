@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { profiles, matchPredictions } from '@/db/schema';
+import { profiles, matchPredictions, groupPredictions, bracketPredictions, awardPredictions } from '@/db/schema';
 import { getFixtures } from './get-fixtures';
 import { getScoringConfig } from './app-settings';
 import type { LeaderPlayer, ScoredPrediction, MatchMeta } from './leaderboard';
@@ -8,6 +8,7 @@ export type LeaderboardData = {
   players: LeaderPlayer[];
   predictions: ScoredPrediction[];
   matches: MatchMeta[];
+  bonusByUser: Record<string, number>;
 };
 
 /**
@@ -16,11 +17,14 @@ export type LeaderboardData = {
  * stay config-free), and serializable per-match metadata (reusing getFixtures for team/lock).
  */
 export async function getLeaderboardData(): Promise<LeaderboardData> {
-  const [fixtures, profileRows, predRows, cfg] = await Promise.all([
+  const [fixtures, profileRows, predRows, cfg, gRows, bRows, aRows] = await Promise.all([
     getFixtures(),
     db.select().from(profiles),
     db.select().from(matchPredictions),
     getScoringConfig(),
+    db.select().from(groupPredictions),
+    db.select().from(bracketPredictions),
+    db.select().from(awardPredictions),
   ]);
 
   const players: LeaderPlayer[] = profileRows.map((p) => ({
@@ -41,5 +45,14 @@ export async function getLeaderboardData(): Promise<LeaderboardData> {
     kickoffMs: f.kickoffAt.getTime(),
   }));
 
-  return { players, predictions, matches };
+  const bonusByUser: Record<string, number> = {};
+  const add = (userId: string, pts: number | null) => {
+    if (pts == null) return;
+    bonusByUser[userId] = (bonusByUser[userId] ?? 0) + pts;
+  };
+  for (const r of gRows) add(r.userId, r.pointsAwarded);
+  for (const r of bRows) add(r.userId, r.pointsAwarded);
+  for (const r of aRows) add(r.userId, r.pointsAwarded);
+
+  return { players, predictions, matches, bonusByUser };
 }

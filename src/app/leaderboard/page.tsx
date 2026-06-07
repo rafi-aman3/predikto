@@ -11,7 +11,7 @@ export default async function LeaderboardPage({
   const sp = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const [{ players, predictions, matches }, prizeText] = await Promise.all([
+  const [{ players, predictions, matches, bonusByUser }, prizeText] = await Promise.all([
     getLeaderboardData(),
     getPrizeText(),
   ]);
@@ -23,6 +23,7 @@ export default async function LeaderboardPage({
         players={players}
         predictions={predictions}
         matches={matches}
+        bonusByUser={bonusByUser}
         prizeText={prizeText}
         meId={user?.id ?? null}
         initialTab={sp.tab}

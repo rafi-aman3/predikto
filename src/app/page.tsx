@@ -35,8 +35,8 @@ export default async function Home() {
   let myRank: number | null = null;
   let playerCount = 0;
   if (user) {
-    const { players, predictions } = await getLeaderboardData();
-    const board = buildLeaderboard(players, predictions);
+    const { players, predictions, bonusByUser } = await getLeaderboardData();
+    const board = buildLeaderboard(players, predictions, { bonusByUser });
     playerCount = board.length;
     myRank = board.find((r) => r.userId === user.id)?.rank ?? null;
   }

@@ -14,11 +14,12 @@ const STAGES: { key: string; label: string }[] = [
 ];
 
 export function LeaderboardView({
-  players, predictions, matches, prizeText, meId, initialTab, initialStage, initialMatch,
+  players, predictions, matches, bonusByUser, prizeText, meId, initialTab, initialStage, initialMatch,
 }: {
   players: LeaderPlayer[];
   predictions: ScoredPrediction[];
   matches: MatchMeta[];
+  bonusByUser: Record<string, number>;
   prizeText: string | null;
   meId: string | null;
   initialTab?: string;
@@ -48,7 +49,7 @@ export function LeaderboardView({
     window.history.replaceState(null, '', `?${params.toString()}`);
   };
 
-  const overall = useMemo(() => buildLeaderboard(players, predictions), [players, predictions]);
+  const overall = useMemo(() => buildLeaderboard(players, predictions, { bonusByUser }), [players, predictions, bonusByUser]);
   const scopeIds = useMemo(() => new Set(matches.filter((m) => m.stage === stage).map((m) => m.id)), [matches, stage]);
   const round = useMemo(() => buildLeaderboard(players, predictions, { matchIdsInScope: scopeIds }), [players, predictions, scopeIds]);
   const matchBoard = useMemo(() => (match ? buildMatchLeaderboard(match, players, predictions) : []), [match, players, predictions]);
