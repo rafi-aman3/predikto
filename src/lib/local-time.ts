@@ -51,3 +51,23 @@ export function groupByLocalDate(
     }))
     .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
 }
+
+/**
+ * Chooses which date-strip day to select by default. `now` is mapped to a day key via the
+ * same `dayKey` used for grouping (injectable for deterministic tests). Rules: today if it
+ * has matches; otherwise the next match day; otherwise (now is past the last day) the last
+ * match day. Returns null when there are no match days.
+ */
+export function pickDefaultDay(
+  groups: LocalDateGroup[],
+  now: Date,
+  dayKey: (d: Date) => string = localDayKey,
+): string | null {
+  if (groups.length === 0) return null;
+  const todayKey = dayKey(now);
+  const today = groups.find((g) => g.dateKey === todayKey);
+  if (today) return today.dateKey;
+  const next = groups.find((g) => g.dateKey > todayKey);
+  if (next) return next.dateKey;
+  return groups[groups.length - 1].dateKey;
+}

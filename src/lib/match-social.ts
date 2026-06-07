@@ -2,7 +2,7 @@ import { and, eq, ne } from 'drizzle-orm';
 import { db } from '@/db';
 import { matchPredictions } from '@/db/schema';
 import { aggregatePredictions, pickNextUnpredicted, type Aggregate } from './board';
-import { getFixtures } from './fixtures';
+import { getFixtures } from './get-fixtures';
 import { getUserPredictionMap } from './predictions';
 
 /** Outcome split across OTHER users' predictions for a match. Caller must gate on the viewer being locked in. */

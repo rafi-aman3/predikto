@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { timeRemaining, groupByLocalDate } from './local-time';
+import { timeRemaining, groupByLocalDate, pickDefaultDay } from './local-time';
 import type { FixtureMatch } from './fixtures';
 
 const mk = (id: string, iso: string): FixtureMatch => ({
@@ -46,5 +46,35 @@ describe('groupByLocalDate', () => {
     const groups = groupByLocalDate([m1, m2], plus6Key);
     expect(groups).toHaveLength(1);
     expect(groups[0].matches.map((m) => m.id)).toEqual(['y', 'x']);
+  });
+});
+
+describe('pickDefaultDay', () => {
+  const groups = (...keys: string[]) =>
+    keys.map((dateKey) => ({ dateKey, matches: [] }));
+  const at = (key: string) => () => key; // deterministic dayKey for `now`
+
+  it('returns null when there are no match days', () => {
+    expect(pickDefaultDay([], new Date('2026-06-07T00:00:00Z'), at('2026-06-07'))).toBeNull();
+  });
+
+  it('before the tournament, defaults to the first match day', () => {
+    const g = groups('2026-06-11', '2026-06-12', '2026-06-13');
+    expect(pickDefaultDay(g, new Date('2026-06-07T00:00:00Z'), at('2026-06-07'))).toBe('2026-06-11');
+  });
+
+  it('during the tournament, defaults to today when today has matches', () => {
+    const g = groups('2026-06-11', '2026-06-12', '2026-06-13');
+    expect(pickDefaultDay(g, new Date('2026-06-12T09:00:00Z'), at('2026-06-12'))).toBe('2026-06-12');
+  });
+
+  it('during the tournament with no matches today, defaults to the next match day', () => {
+    const g = groups('2026-06-11', '2026-06-13', '2026-06-15');
+    expect(pickDefaultDay(g, new Date('2026-06-12T09:00:00Z'), at('2026-06-12'))).toBe('2026-06-13');
+  });
+
+  it('after the last match day, defaults to the last match day', () => {
+    const g = groups('2026-06-11', '2026-06-12');
+    expect(pickDefaultDay(g, new Date('2026-07-20T00:00:00Z'), at('2026-07-20'))).toBe('2026-06-12');
   });
 });

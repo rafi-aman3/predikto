@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { getFixtures } from '@/lib/fixtures';
+import { getFixtures } from '@/lib/get-fixtures';
 import { getUserPredictionMap } from '@/lib/predictions';
 import { buildGroupBoard, buildRankStrip } from '@/lib/board';
 import { db } from '@/db';
